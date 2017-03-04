@@ -1,69 +1,58 @@
 # Description
+Based on https://github.com/Sylius/Docker
+
 This Docker Compose development environment includes
 
 * PHP 7.0
 * MariaDB
-* Nginx 
 * Composer
+* NodeJS (v6)
 
 # Usage
+First, clone Sylius repository https://github.com/Sylius/Sylius
 
-First you need to install Docker and Docker Compose.
+You need to install Docker and Docker Compose.
 
 ```bash
+mkdir docker
 cd docker
 docker-compose up
 ```
 
-Now you have a few options to get started
+# Run
 
-## Basic
+NodeJS container start, run: npm install && npm run gulp
+and down.
 
-Get the ip of the Nginx container.
+PHP container run: bin/console server:start 0.0.0.0:8000 command
 
-```
-docker inspect $(docker-compose ps -q nginx) | grep IPAddress
-```
-
-## Advanced
-
-Run a `dnsdock` container before `docker-compose up`, more info: https://github.com/tonistiigi/dnsdock
-Access the containers from the dns records.
-
-# Troubleshooting
-
-## How to enter a container?
-
-Enter the php container to install composer vendors etc.
+If your database is not installed, enter in PHP container:
 
 ```bash
-docker exec -it $(docker-compose ps -q php) bash
+docker-compose exec php bash
 ```
 
-## The application is too slow.
-
-Install composer vendors in the container and symlink them to the application directory.
-Execute inside the php container:
-
+And run Sylius install command from PHP container:
 ```bash
-mkdir /vendor && ln -sf /vendor ./vendor
+php bin/console sylius:install
 ```
 
-Using Symfony2 inside Vagrant can be slow due to synchronisation delay incurred by NFS.
-You can write the app logs and cache to a folder on the php container.
+Now you access to front and back-office.
 
-Enter the php container and create the directory:
+### Website
+##### Admin
+http://localhost:8000/admin
 
+##### Front office
+http://localhost:8000
+
+## Tips
+Execute commands in nodeJS container, like install npm packages.
 ```bash
-docker exec -it $(docker-compose ps -q php) bash
-mkdir /dev/shm/sylius/
-setfacl -R -m u:"www-data":rwX -m u:`whoami`:rwX /dev/shm/sylius/
-setfacl -dR -m u:"www-data":rwX -m u:`whoami`:rwX /dev/shm/sylius/
-```
+docker run --rm -it -v $(pwd):/var/www/sylius -w /var/www/sylius node:6 sh
+````
 
-To view the application logs, run the following commands:
-
+Run Gulp watch for sass CSS
 ```bash
-tail -f /dev/shm/sylius/app/logs/prod.log
-tail -f
-```
+docker-compose run --rm node ./node_modules/.bin/gulp shop-watch
+````
